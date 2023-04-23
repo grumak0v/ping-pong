@@ -1,68 +1,49 @@
-# ping-pong
-#Bauum, Bauum
-
+from random import randint
 from pygame import *
 font.init()
  
 class GameSprite(sprite.Sprite):
-    def __init__(self, playerl_image, playerl_x, playerl_y, playerl_speed, playerr_image, playerr_x, playerr_y, playerr_speed):
+    def __init__(self, player_image, player_x, player_y, player_speed, width, height):
         sprite.Sprite.__init__(self)
-        self.image = transform.scale(image.load("racketl_image"), (65, 65))
-        self.speedl = playerl_speed
-        self.rect = self.image.get_rect()
-        self.rect.xl = playerl_x
-        self.rect.yl = playerl_y
+        self.image = transform.scale(image.load("racket.png"), (65, 65))
         self.speed = player_speed
-        self.rect.xr = playerr_x
-        self.rect.yr = playerr_y
-        self.image = transform.scale(image.load("racketr_image"), (65, 65))
-        self.speedr = playerr_speed
- 
-    def reset(self):
-        window.blit(self.image, (self.rect.xl, self.rect.yl, self.rect.xr, self.rect.yr))
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.speed = player_speed
+        self.rect.x = player_x
 
-win_width = 700
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+win_width = 600
 win_height = 500
+speed_x = 3
+speed_y = 3
 window = display.set_mode((win_width, win_height))
 display.set_caption('пинг-понг')
-background  = transform.scale(image.load('phonk.jpg'), (win_width, win_height))
 
-class Playerl(GameSprite):
-    def update(self):
+
+class Player(GameSprite):
+    def update_l(self):
         keys = key.get_pressed()
-        if keys[K_W] and self.rect.yl > 5:
-            self.rect.yl -= self.speed
-        if keys[K_S] and self.rect.yl < win_height - 70:
-            self.rect.yl += self.speed
+        if keys[K_w] and self.rect.y > 5:
+            self.rect.y -= self.speed
+        if keys[K_s] and self.rect.y < win_height - 70:
+            self.rect.y += self.speed
 
-playerl = Playerl('hero.png', 5, win_height - 90, 4)
-playerr = Playerr('hero.png', 5, win_height - 0, 4)
-
-class Playerr(GameSprite):
-    def update(self):
+    def update_r(self):
         keys = key.get_pressed()
-        if keys[K_UP] and self.rect.yr > 5:
-            self.rect.yr -= self.speed
-        if keys[K_DOWN] and self.rect.yr < win_height - 70:
-            self.rect.yr += self.speed
+        if keys[K_UP] and self.rect.y > 5:
+            self.rect.y -= self.speed
+        if keys[K_DOWN] and self.rect.y < win_height - 70:
+            self.rect.y += self.speed
 
-class Tenis_ball(GameSprite):
-    def __init__(self, self.rect.y, self.rect.x, playerl_image, playerl_x, playerl_y, playerl_speed, playerr_image, playerr_x, playerr_y, playerr_speed):
-        GameSprite.__init__(self, playerl_image, playerl_x, playerl_y, playerl_speed, playerr_image, playerr_x, playerr_y, playerr_speed, self.rect.y, self.rect.x)
-        self.diraction = 'left'
-    def update(self):
-        if sprite.collide_rect(playerl, tenis_ball):
-            self.diraction = 'right'
-        if sprite.collide_rect(playerr, tenis_ball):
-            self.diraction = 'left'
-        if self.diraction == 'left':
-            self.rect.x -= self.speed
-        if self.rect.y > 5:
-            self.diraction = 'down'
-        if self.rect.y < win_height - 70:
-            self.diraction = 'up'
-        else:
-            self.rect.x += self.speed   
+player1 = Player('racket.png', 30, 200, 4, 50, 150)
+player2 = Player('racket.png', 520, 200, 4, 50, 150)
+ball = GameSprite('tenis_ball', 200, 200, 4, 50, 50 )
+
+left = 0
+right = 0
 
 game = True
 finish = False
@@ -80,14 +61,35 @@ while game:
  
     if not finish:
         # Отображение фона игрока и врага
-        window.blit(background, (0, 0))
-        Playerl.update()
-        Playerr.update()
-        Tenis_ball.update()
+        player1.update_l()
+        player2.update_r()
+        ball.update()
+        ball.rect.x += speed_x
+        ball.rect.y += speed_y
 
-    if sprite.collide_rect(playerl, tenis_ball):
-            
-            window.blit(win, (200, 200))
+    if ball.rect.y > win_width:
+            ball.rect.x = randint(80, win_width - 80)
+            ball.rect.y = 0
+            left += 1
+
+    if ball.rect.y < win_width:
+            ball.rect.x = randint(80, win_width - 80)
+            ball.rect.y = 0
+            right += 1
+    
+    if sprite.collide_rect(player1, ball) or sprite.collide_rect(player2, ball):
+        speed_x *= -1
+    
+    if ball.rect.y > win_height - 50 or ball.rect.y < 0:
+        speed_y *= -1
+
+    if left >= 3:
+        window.blit(winr, (200, 200))
+        run = False
+
+    if right >= 3:
+        window.blit(winl, (200, 200))
+        run = False
 
 display.update()
 clock.tick(FPS)
